@@ -433,4 +433,3 @@ def project_labels_into_camera(camera_calibration, image, labels, labels_valid, 
         return img_resized
     else:
         return image
-

@@ -24,15 +24,23 @@ import misc.params as params
 class Filter:
     '''Kalman filter class'''
     def __init__(self):
-        pass
-
+        self.dt = params.dt
+        self.q = params.q
+        self.dim_state = params.dim_state
+        
     def F(self):
         ############
         # TODO Step 1: implement and return system matrix F
         ############
-
-        return 0
-        
+        # system matrix
+        dt = self.dt
+        return np.matrix([[1,0,0,dt,0,0],
+                         [0,1,0,0,dt,0],
+                         [0,0,1,0,0,dt],
+                         [0,0,0,1,0,0],
+                         [0,0,0,0,1,0],
+                         [0,0,0,0,0,1]])        
+    
         ############
         # END student code
         ############ 
@@ -41,8 +49,18 @@ class Filter:
         ############
         # TODO Step 1: implement and return process noise covariance Q
         ############
-
-        return 0
+        # process noise covariance Q
+        q = self.q
+        dt = self.dt
+        q1 = ((dt**3)/3)*  q 
+        q2 = ((dt**2)/2)*  q 
+        q3 = dt * q 
+        return np.matrix([[q1,0,0,q2,0,0],
+                         [0,q1,0,0,q2,0],
+                         [0,0,q1,0,0,q2],
+                         [q2,0,0,q3,0,0],
+                         [0,q2,0,0,q3,0],
+                         [0,0,q2,0,0,q3]]) 
         
         ############
         # END student code
@@ -52,17 +70,36 @@ class Filter:
         ############
         # TODO Step 1: predict state x and estimation error covariance P to next timestep, save x and P in track
         ############
-
-        pass
+        # predict state and estimation error covariance to next timestep
+        x_pre = track.x
+        P_pre = track.P
         
+        F = self.F()
+        x = F*x_pre # state prediction
+        P = F*P_pre*F.T + self.Q() # covariance prediction
+        track.set_x(x)
+        track.set_P(P)
+                
         ############
         # END student code
         ############ 
-
     def update(self, track, meas):
         ############
         # TODO Step 1: update state x and covariance P with associated measurement, save x and P in track
         ############
+        x_pre = track.x
+        P_pre = track.P
+        
+        H = meas.sensor.get_H(x_pre)
+        gamma = self.gamma(track, meas)
+        S = self.S(track, meas, H)
+        I = np.asmatrix(np.eye((self.dim_state)))
+        K = P_pre * H.T * S.I
+        x = x_pre + K * gamma
+        P = (I - K * H) * P_pre
+        
+        track.set_x(x)
+        track.set_P(P)        
         
         ############
         # END student code
@@ -73,19 +110,24 @@ class Filter:
         ############
         # TODO Step 1: calculate and return residual gamma
         ############
-
-        return 0
+        x = track.x
+        z = meas.z
+        
+        hx = meas.sensor.get_hx(x)
+        gamma = z - hx
+        return gamma
         
         ############
         # END student code
         ############ 
-
     def S(self, track, meas, H):
         ############
         # TODO Step 1: calculate and return covariance of residual S
         ############
-
-        return 0
+        P = track.P
+        
+        S = H * P * H.T + meas.R # covariance of residual
+        return S
         
         ############
         # END student code

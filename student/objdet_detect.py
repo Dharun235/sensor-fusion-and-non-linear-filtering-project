@@ -202,8 +202,7 @@ def detect_objects(input_bev_maps, model, configs):
             # Perform post-processing
             post_processed_detections = post_processing(decoded_detections, nms_thresh=configs.nms_thresh)
             # Append the processed detections to the detections list
-            detections.append(
-post_processed_detections)
+            detections.append(post_processed_detections)
             #######
             ####### ID_S3_EX1-5 END #######     
 
@@ -232,7 +231,7 @@ post_processed_detections)
             objects.append([x_world, y_world, z_world, l_world, w_world, h_world, yaw])
 
     #######
-    ####### ID_S3_EX2 START #######   
+    ####### ID_S3_EX2 END #######   
     
     return objects    
 
